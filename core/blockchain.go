@@ -1,4 +1,4 @@
-package main
+package core
 
 type Blockchain struct {
 	Blocks []*Block
@@ -9,10 +9,6 @@ func (bc *Blockchain) AddBlock(data string) {
 	newBlock := NewBlock(data, prevBlock.Hash)
 
 	bc.Blocks = append(bc.Blocks, newBlock)
-}
-
-func NewGenesisBlock() *Block {
-	return NewBlock("Genensis Block", []byte{})
 }
 
 func NewBlockChain() *Blockchain {
