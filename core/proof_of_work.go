@@ -4,56 +4,87 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
 	"math"
 	"math/big"
+	"strconv"
 )
-
-const targetBits = 16
 
 var (
 	maxNonce = math.MaxInt64
 )
 
 type ProofOfWork struct {
+	cfg    *model.Config
 	block  *Block
 	target *big.Int
 }
 
-func NewProofOfWork(b *Block) *ProofOfWork {
+func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
+	targetBits, err := strconv.Atoi(cfg.ProofOfWorkConfig.TargetBits)
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
 
 	pow := &ProofOfWork{
+		cfg:    cfg,
 		block:  b,
 		target: target,
 	}
 
-	return pow
+	return pow, nil
 }
 
-func (pow *ProofOfWork) prepareData(nonce int) []byte {
+func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
+	targetBits, err := strconv.Atoi(pow.cfg.ProofOfWorkConfig.TargetBits)
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
+	timestampBytes, err := utils.IntToHex(pow.block.Timestamp)
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
+	targetBitsBytes, err := utils.IntToHex(int64(targetBits))
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
+	nonceBytes, err := utils.IntToHex(int64(nonce))
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
 			pow.block.Data,
-			utils.IntToHex(pow.block.Timestamp),
-			utils.IntToHex(int64(targetBits)),
-			utils.IntToHex(int64(nonce)),
+			timestampBytes,
+			targetBitsBytes,
+			nonceBytes,
 		}, []byte{},
 	)
 
-	return data
+	return data, nil
 }
 
-func (pow *ProofOfWork) Run() (int, []byte) {
+func (pow *ProofOfWork) Run() (*int, []byte, error) {
 	var hashInt big.Int
 	var hash [32]byte
 	nonce := 0
 
 	fmt.Printf("Mining the block containing \"%s\"\n", pow.block.Data)
 	for nonce < maxNonce {
-		data := pow.prepareData(nonce)
+		data, err := pow.prepareData(nonce)
+		if err != nil {
+			return nil, nil, utils.CatchErr(err)
+		}
+
 		hash = sha256.Sum256(data)
 		fmt.Printf("\r%x", hash)
 		hashInt.SetBytes(hash[:])
@@ -66,17 +97,21 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	}
 	fmt.Print("\n\n")
 
-	return nonce, hash[:]
+	return &nonce, hash[:], nil
 }
 
-func (pow *ProofOfWork) Validate() bool {
+func (pow *ProofOfWork) Validate() (*bool, error) {
 	var hashInt big.Int
 
-	data := pow.prepareData(pow.block.Nonce)
+	data, err := pow.prepareData(pow.block.Nonce)
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
 	hash := sha256.Sum256(data)
 	hashInt.SetBytes(hash[:])
 
 	isValid := hashInt.Cmp(pow.target) == -1
 
-	return isValid
+	return &isValid, nil
 }

@@ -1,26 +1,24 @@
 package main
 
 import (
-	"fmt"
-	"go-burrokuchen/core"
-	"strconv"
+	"go-burrokuchen/cmd"
+	"os"
+
+	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 )
 
-func main() {
-	bc := core.NewBlockChain()
+func init() {
+	log.SetOutput(os.Stdout)
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.DebugLevel)
 
-	bc.AddBlock("Send 1 BTC to Kevo")
-
-	bc.AddBlock("Send 1 more BTC to Kevo")
-
-	for _, block := range bc.Blocks {
-		fmt.Printf("Prev Hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Printf("Nonce: %d\n", block.Nonce)
-
-		pow := core.NewProofOfWork(block)
-		fmt.Printf("Proof of Work: %s\n", strconv.FormatBool(pow.Validate()))
-		fmt.Println()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
 	}
+}
+
+func main() {
+	cmd.Execute()
 }

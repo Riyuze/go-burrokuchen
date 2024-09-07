@@ -15,6 +15,9 @@ This is a very simple implementation of a blokchain in the go programming langua
 		- [Proof of Work](#proof-of-work)
 		- [Hashing](#hashing)
 		- [Hashcash](#hashcash)
+	- [Chapter 3: Persistence and CLI](#chapter-3-persistence-and-cli)
+		- [Database Choice](#database-choice)
+		- [Database Structure](#database-structure)
 
 ---
 
@@ -86,3 +89,48 @@ Bitcoin uses [_Hashcash_](https://en.wikipedia.org/wiki/Hashcash), a Proof of Wo
 Thus, this is a brute force algorithm: you change the counter, calculate a new hash, check it, increment the counter, calculate a hash, check it again, and so on. That’s why it’s computationally expensive.
 
 ---
+
+## Chapter 3: [Persistence and CLI](https://jeiwan.net/posts/building-blockchain-in-go-part-3/)
+
+### Database Choice
+
+Implementing a database into our blockchain will let use reuse a blockchain and share it with others. Without a database we create a new blockchain everytime we run the program and store them in memory. When the program closes, the blockchain is erased. There are no specific database which must be used for a blockchain so it's up to the developer which database to use.
+
+In this project we will be using [**BoltDB (bbolt)**](https://github.com/etcd-io/bbolt). We are using this specific repository as it is forked from the original [**BoltDB**](https://github.com/boltdb/bolt) repository but with an active maintenance and development target. We are using this specific database because of these reasons:
+
+1. Minimalistic.
+2. Implemented in Golang.
+3. Doesn't require to run a server.
+4. Utilizes **key/value storage system** which allows us to build the data structure we need.
+
+### Database Structure
+
+The database structure used here will refer to the way Bitcoin Core stores its data. Bitcoin Core uses two "*buckets*" to store data:
+
+1. `blocks` stores the metadata describing all the blocks in the chain.
+2. `chainstate` stores the state of a chain, which is all current unspent transaction output's metadata.
+
+Blocks are also stored on different files on the disk, this is done for performance optimization where reading a single block won't require loading the whole blocks data into memory. **This will not be implemented here**.
+
+In `blocks`, the `key` -> `value` pairs are as follows:
+
+1. `'b' + 32-byte block hash` -> `block index record`
+2. `'f' + 4-byte file number` -> `file information record`
+3. `'l'` -> `4-byte file number (the last block file number used)`
+4. `'R'` -> `1-byte boolean (whether we're in the process of reindexing)`
+5. `'F' + 1-byte flag name length + flag name string` -> `1 byte boolean (various flags that can be on or off)` <br />
+6. `'t' + 32-byte transaction hash` -> `transaction index record`
+
+
+In `chainstate`, the `key` -> `value` pairs are as follows:
+1. `'c' + 32-byte transaction hash` -> `unspent transaction output record for that transaction`
+2. `'B'` -> `32-byte block hash (the block hash up to which the database represents the unspent transaction outputs)`
+
+Further reading [**Bitcoin Core: Data Storage**](https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_2):_Data_Storage).
+
+Since we haven't implemented transactions, we're going to only have the `blocks` bucket. We will also store all the blocks in one database file, removing the need to store anything related to file numbers. The `key` -> `value` pairs we will be using are:
+1. `32-byte block-hash` -> `Block structure (serialized)`
+2. `'l'` -> `the hash of the last block in a chain`
+
+---
+

@@ -3,15 +3,14 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
 )
 
-func IntToHex(num int64) []byte {
+func IntToHex(num int64) ([]byte, error) {
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, num)
 	if err != nil {
-		log.Panic(err)
+		return nil, CatchErr(err)
 	}
 
-	return buff.Bytes()
+	return buff.Bytes(), nil
 }
