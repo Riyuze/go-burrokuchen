@@ -13,10 +13,12 @@ type BlockchainIterator struct {
 	db          *bolt.DB
 }
 
+// Generates and returns a blockchain iterator
 func NewBlockchainIterator(cfg *model.Config, tip []byte, db *bolt.DB) *BlockchainIterator {
 	return &BlockchainIterator{cfg: cfg, currentHash: tip, db: db}
 }
 
+// Returns the previous block instance in the blockchain
 func (bci *BlockchainIterator) Prev() (*Block, error) {
 	var prevBlock *Block
 

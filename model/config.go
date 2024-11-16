@@ -3,6 +3,7 @@ package model
 type Config struct {
 	DatabaseConfig    DatabaseConfig
 	ProofOfWorkConfig ProofOfWorkConfig
+	TransactionConfig TransactionConfig
 }
 
 type DatabaseConfig struct {
@@ -12,4 +13,9 @@ type DatabaseConfig struct {
 
 type ProofOfWorkConfig struct {
 	TargetBits string
+}
+
+type TransactionConfig struct {
+	Subsidy             string
+	GenesisCoinbaseData string
 }

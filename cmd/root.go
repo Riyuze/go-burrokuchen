@@ -1,12 +1,17 @@
 package cmd
 
 import (
-	"go-burrokuchen/core"
 	"go-burrokuchen/utils"
-	"log"
-	"os"
 
 	"github.com/spf13/cobra"
+)
+
+// Flag variables
+var (
+	address string
+	from    string
+	to      string
+	amount  int
 )
 
 var rootCmd = &cobra.Command{
@@ -18,23 +23,16 @@ var rootCmd = &cobra.Command{
 func Execute() error {
 	config := utils.LoadConfg()
 
-	blockchain, err := core.NewBlockchain(config)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer blockchain.Db.Close()
-
 	rootCmd.AddCommand(
-		NewAddBlockCmd(blockchain),
-		NewPrintChainCmd(blockchain),
+		NewCreateBlockchainCmd(config),
+		NewGetBalanceCmd(config),
+		NewSendCmd(config),
 	)
 
-	err = rootCmd.Execute()
+	err := rootCmd.Execute()
 	if err != nil {
-		log.Fatal(err)
+		return utils.CatchErr(err)
 	}
-	os.Exit(0)
 
 	return nil
 }

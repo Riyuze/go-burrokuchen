@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
@@ -10,16 +11,17 @@ import (
 
 type Block struct {
 	Timestamp     int64
-	Data          []byte
+	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce         int
 }
 
-func NewBlock(cfg *model.Config, data string, prevBlockHash []byte) (*Block, error) {
+// Generates and returns a new block
+func NewBlock(cfg *model.Config, transactions []*Transaction, prevBlockHash []byte) (*Block, error) {
 	block := &Block{
 		Timestamp:     time.Now().Unix(),
-		Data:          []byte(data),
+		Transactions:  transactions,
 		PrevBlockHash: prevBlockHash,
 		Hash:          []byte{},
 		Nonce:         0,
@@ -41,8 +43,11 @@ func NewBlock(cfg *model.Config, data string, prevBlockHash []byte) (*Block, err
 	return block, nil
 }
 
-func NewGenesisBlock(cfg *model.Config) (*Block, error) {
-	block, err := NewBlock(cfg, "Genesis Block", []byte{})
+// Generates and returns a genesis block
+func NewGenesisBlock(cfg *model.Config, coinbase *Transaction) (*Block, error) {
+	transactions := []*Transaction{coinbase}
+
+	block, err := NewBlock(cfg, transactions, []byte{})
 	if err != nil {
 		return nil, utils.CatchErr(err)
 	}
@@ -62,6 +67,20 @@ func (b *Block) SerializeBlock() ([]byte, error) {
 	return result.Bytes(), nil
 }
 
+// Returns a hash of the transactions in the block
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return txHash[:]
+}
+
+// Deserializes a block
 func DeserializeBlock(d []byte) (*Block, error) {
 	var block Block
 

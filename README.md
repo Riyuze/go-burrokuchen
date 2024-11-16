@@ -18,6 +18,8 @@ This is a very simple implementation of a blokchain in the go programming langua
 	- [Chapter 3: Persistence and CLI](#chapter-3-persistence-and-cli)
 		- [Database Choice](#database-choice)
 		- [Database Structure](#database-structure)
+	- [Chapter 4: Transactions I](#chapter-4-transactions-i)
+		- [Transactions](#transactions)
 
 ---
 
@@ -84,7 +86,9 @@ Bitcoin uses [_Hashcash_](https://en.wikipedia.org/wiki/Hashcash), a Proof of Wo
 1. Take some publicly known data (in case of email, it’s receiver’s email address; in case of Bitcoin, it’s block headers).
 2. Add a counter to it. The counter starts at 0.
 3. Get a hash of the data + counter combination.
-4. Check that the hash meets certain requirements. 1. If it does, you’re done. 2. If it doesn’t, increase the counter and repeat the steps 3 and 4.
+4. Check that the hash meets certain requirements. 
+      1. If it does, you’re done. 
+      2. If it doesn’t, increase the counter and repeat the steps 3 and 4.
 
 Thus, this is a brute force algorithm: you change the counter, calculate a new hash, check it, increment the counter, calculate a hash, check it again, and so on. That’s why it’s computationally expensive.
 
@@ -105,7 +109,7 @@ In this project we will be using [**BoltDB (bbolt)**](https://github.com/etcd-io
 
 ### Database Structure
 
-The database structure used here will refer to the way Bitcoin Core stores its data. Bitcoin Core uses two "*buckets*" to store data:
+The database structure used here will refer to the way Bitcoin Core stores its data. Bitcoin Core uses two "_buckets_" to store data:
 
 1. `blocks` stores the metadata describing all the blocks in the chain.
 2. `chainstate` stores the state of a chain, which is all current unspent transaction output's metadata.
@@ -121,16 +125,32 @@ In `blocks`, the `key` -> `value` pairs are as follows:
 5. `'F' + 1-byte flag name length + flag name string` -> `1 byte boolean (various flags that can be on or off)` <br />
 6. `'t' + 32-byte transaction hash` -> `transaction index record`
 
-
 In `chainstate`, the `key` -> `value` pairs are as follows:
+
 1. `'c' + 32-byte transaction hash` -> `unspent transaction output record for that transaction`
 2. `'B'` -> `32-byte block hash (the block hash up to which the database represents the unspent transaction outputs)`
 
-Further reading [**Bitcoin Core: Data Storage**](https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_2):_Data_Storage).
+Further reading [**Bitcoin Core: Data Storage**](<https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_2):_Data_Storage>).
 
 Since we haven't implemented transactions, we're going to only have the `blocks` bucket. We will also store all the blocks in one database file, removing the need to store anything related to file numbers. The `key` -> `value` pairs we will be using are:
+
 1. `32-byte block-hash` -> `Block structure (serialized)`
 2. `'l'` -> `the hash of the last block in a chain`
 
 ---
 
+## Chapter 4: [Transactions I](https://jeiwan.net/posts/building-blockchain-in-go-part-4/)
+
+### Transactions
+
+The purpose of a blockchain is to store transactions in a secure and reliable way, so no one could modify them after they are created and inserted into the blockchain.
+
+This section will implement the general mechanism of transactions, which includes getting the balance of an _address_ and sending tokens to other _addresses_.
+
+Note that the _address_ used here is just an arbitrary string used to represent an _address_. **private-key based addresses** will be implemented in the next section, along with other Bitcoin-like transactional features such as:
+
+-   `Rewards`: **Mining is the process of trying to add a new block of transactions on to the blockchain**, which take huge amounts of computational power, which is why the node mining a block is usually compensated with a reward. Right now our blockchain doesn't give out rewards for mining a block, so it's absolutely not profitable.
+-   `Unspent Transaction Outputs Set`: UTXOs are the amount of digital currency that remains after a cryptocurrency transaction. Right now, getting balance requires scanning the whole blockchain, which can take very long time when there are many and many blocks. It will also take a lot of time if we want to validate later transactions. **UTXO set is the comprehensive set of all UTXOs existing at a given point in time**, this will make operations with transactions way faster.
+-   `Mempool`: Mempool is a blockchain node's version of a waiting room for **not-yet-approved transactions**. This is where transactions are stored before being packed in a block. In our current implementation, a block contains only one transaction, and this is quite inefficient.
+
+---

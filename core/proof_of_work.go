@@ -21,6 +21,7 @@ type ProofOfWork struct {
 	target *big.Int
 }
 
+// Generates and returns a proof of work
 func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
 	targetBits, err := strconv.Atoi(cfg.ProofOfWorkConfig.TargetBits)
 	if err != nil {
@@ -39,6 +40,7 @@ func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
 	return pow, nil
 }
 
+// Prepares data for the proof of work
 func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
 	targetBits, err := strconv.Atoi(pow.cfg.ProofOfWorkConfig.TargetBits)
 	if err != nil {
@@ -63,7 +65,7 @@ func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
-			pow.block.Data,
+			pow.block.HashTransactions(),
 			timestampBytes,
 			targetBitsBytes,
 			nonceBytes,
@@ -73,12 +75,13 @@ func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
 	return data, nil
 }
 
+// Runs the proof of work
 func (pow *ProofOfWork) Run() (*int, []byte, error) {
 	var hashInt big.Int
 	var hash [32]byte
 	nonce := 0
 
-	fmt.Printf("Mining the block containing \"%s\"\n", pow.block.Data)
+	fmt.Println("Mining a new block...")
 	for nonce < maxNonce {
 		data, err := pow.prepareData(nonce)
 		if err != nil {
@@ -100,6 +103,7 @@ func (pow *ProofOfWork) Run() (*int, []byte, error) {
 	return &nonce, hash[:], nil
 }
 
+// Validates a block's proof of work
 func (pow *ProofOfWork) Validate() (*bool, error) {
 	var hashInt big.Int
 

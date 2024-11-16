@@ -20,5 +20,10 @@ func init() {
 }
 
 func main() {
-	cmd.Execute()
+	err := cmd.Execute()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	os.Exit(0)
 }
