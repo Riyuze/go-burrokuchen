@@ -11,6 +11,8 @@ func LoadConfg() *model.Config {
 	targetBits := os.Getenv("TARGET_BITS")
 	subsidy := os.Getenv("SUBSIDY")
 	genesisCoinbaseData := os.Getenv("GENESIS_COINBASE_DATA")
+	checkSumLength := os.Getenv("CHECK_SUM_LENGTH")
+	walletFile := os.Getenv("WALLET_FILE")
 
 	cfg := &model.Config{
 		DatabaseConfig: model.DatabaseConfig{
@@ -21,6 +23,9 @@ func LoadConfg() *model.Config {
 		}, TransactionConfig: model.TransactionConfig{
 			Subsidy:             subsidy,
 			GenesisCoinbaseData: genesisCoinbaseData,
+		}, WalletConfig: model.WalletConfig{
+			WalletFile:     walletFile,
+			CheckSumLength: checkSumLength,
 		},
 	}
 

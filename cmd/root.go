@@ -27,6 +27,7 @@ func Execute() error {
 		NewCreateBlockchainCmd(config),
 		NewGetBalanceCmd(config),
 		NewSendCmd(config),
+		NewCreateWalletCmd(config),
 	)
 
 	err := rootCmd.Execute()

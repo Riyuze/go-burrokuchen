@@ -5,6 +5,7 @@ import (
 	"go-burrokuchen/core"
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +32,7 @@ func NewCreateBlockchainCmd(cfg *model.Config) *cobra.Command {
 }
 
 func createBlockchain(cfg *model.Config) error {
-	if address == "" {
+	if address == "" || !strings.HasPrefix(address, "1") || len(address) < 25 || len(address) > 34 {
 		err := fmt.Errorf("please input a valid address")
 		return utils.CatchErr(err)
 	}

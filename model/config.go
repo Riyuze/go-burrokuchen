@@ -4,6 +4,7 @@ type Config struct {
 	DatabaseConfig    DatabaseConfig
 	ProofOfWorkConfig ProofOfWorkConfig
 	TransactionConfig TransactionConfig
+	WalletConfig      WalletConfig
 }
 
 type DatabaseConfig struct {
@@ -18,4 +19,9 @@ type ProofOfWorkConfig struct {
 type TransactionConfig struct {
 	Subsidy             string
 	GenesisCoinbaseData string
+}
+
+type WalletConfig struct {
+	WalletFile     string
+	CheckSumLength string
 }
