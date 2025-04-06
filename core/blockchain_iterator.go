@@ -7,18 +7,19 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// BlockchainIterator is used to iterate over blockchain blocks
 type BlockchainIterator struct {
 	cfg         *model.Config
 	currentHash []byte
 	db          *bolt.DB
 }
 
-// Generates and returns a blockchain iterator
+// NewBlockchainIterator generates and returns a blockchain iterator
 func NewBlockchainIterator(cfg *model.Config, tip []byte, db *bolt.DB) *BlockchainIterator {
 	return &BlockchainIterator{cfg: cfg, currentHash: tip, db: db}
 }
 
-// Returns the previous block instance in the blockchain
+// Prev returns the previous block instance in the blockchain
 func (bci *BlockchainIterator) Prev() (*Block, error) {
 	var prevBlock *Block
 

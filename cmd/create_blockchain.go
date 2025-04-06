@@ -43,6 +43,13 @@ func createBlockchain(cfg *model.Config) error {
 	}
 	defer blockchain.Db.Close()
 
+	UTXOSet := core.NewUTXOSet(cfg, blockchain)
+
+	err = UTXOSet.Reindex()
+	if err != nil {
+		return utils.CatchErr(err)
+	}
+
 	fmt.Println("Generated new blockhain. Sent rewards to: ", address)
 
 	return nil

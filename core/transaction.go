@@ -52,13 +52,15 @@ func (tx *Transaction) Hash() ([]byte, error) {
 	return hash[:], nil
 }
 
-// Generates and returns a new coinbase transaction
+// NewCoinbaseTX generates and returns a new coinbase transaction
 func NewCoinbaseTX(cfg *model.Config, to string, data string) (*Transaction, error) {
+	subsidyStr := cfg.TransactionConfig.Subsidy
+
 	if data == "" {
 		data = fmt.Sprintf("Reward sent to: %s", to)
 	}
 
-	subsidy, err := strconv.Atoi(cfg.TransactionConfig.Subsidy)
+	subsidy, err := strconv.Atoi(subsidyStr)
 	if err != nil {
 		return nil, utils.CatchErr(err)
 	}
@@ -85,17 +87,17 @@ func NewCoinbaseTX(cfg *model.Config, to string, data string) (*Transaction, err
 	return &tx, nil
 }
 
-// Checks whether the transaction is coinbase or not
+// IsCoinbase checks whether the transaction is coinbase or not
 func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.InputValue) == 1 && len(tx.InputValue[0].TransactionID) == 0 && tx.InputValue[0].OutputIndex == -1
 }
 
-// Generates and returns a new transaction
-func NewUTXOTransaction(blockchain Blockchain, from string, to string, amount int) (*Transaction, error) {
+// NewUTXOTransaction generates and returns a new transaction
+func NewUTXOTransaction(utxoSet UTXOSet, from string, to string, amount int) (*Transaction, error) {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	wallets, err := NewWallets(blockchain.cfg)
+	wallets, err := NewWallets(utxoSet.cfg)
 	if err != nil {
 		return nil, utils.CatchErr(err)
 	}
@@ -105,7 +107,7 @@ func NewUTXOTransaction(blockchain Blockchain, from string, to string, amount in
 		return nil, utils.CatchErr(err)
 	}
 
-	balance, validOutputs, err := blockchain.FindSpendableOutputs(pubKeyHash, amount)
+	balance, validOutputs, err := utxoSet.FindSpendableOutputs(pubKeyHash, amount)
 	if err != nil {
 		return nil, utils.CatchErr(err)
 	}
@@ -117,13 +119,13 @@ func NewUTXOTransaction(blockchain Blockchain, from string, to string, amount in
 	}
 
 	// Build a list of inputs
-	for txID, out := range validOutputs {
+	for txID, outputs := range validOutputs {
 		transactionID, err := hex.DecodeString(txID)
 		if err != nil {
 			return nil, utils.CatchErr(err)
 		}
 
-		for _, outIndex := range out {
+		for _, outIndex := range outputs {
 			input := TXInput{
 				TransactionID: transactionID,
 				OutputIndex:   outIndex,
@@ -136,7 +138,7 @@ func NewUTXOTransaction(blockchain Blockchain, from string, to string, amount in
 	}
 
 	// Build a list of outputs
-	output, err := NewTXOutput(blockchain.cfg, amount, to)
+	output, err := NewTXOutput(utxoSet.cfg, amount, to)
 	if err != nil {
 		return nil, utils.CatchErr(err)
 	}
@@ -144,7 +146,7 @@ func NewUTXOTransaction(blockchain Blockchain, from string, to string, amount in
 	outputs = append(outputs, *output)
 
 	if *balance > amount {
-		outputChange, err := NewTXOutput(blockchain.cfg, *balance-amount, from)
+		outputChange, err := NewTXOutput(utxoSet.cfg, *balance-amount, from)
 		if err != nil {
 			return nil, utils.CatchErr(err)
 		}
@@ -163,7 +165,7 @@ func NewUTXOTransaction(blockchain Blockchain, from string, to string, amount in
 
 	tx.ID = hash
 
-	blockchain.SignTransaction(&tx, wallet.PrivateKey)
+	utxoSet.Blockchain.SignTransaction(&tx, wallet.PrivateKey)
 
 	return &tx, nil
 }

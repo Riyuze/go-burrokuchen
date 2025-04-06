@@ -15,13 +15,14 @@ var (
 	maxNonce = math.MaxInt64
 )
 
+// ProofOfWork represents a proof-of-work
 type ProofOfWork struct {
 	cfg    *model.Config
 	block  *Block
 	target *big.Int
 }
 
-// Generates and returns a proof of work
+// NewProofOfWork generates and returns a proof of work
 func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
 	targetBits, err := strconv.Atoi(cfg.ProofOfWorkConfig.TargetBits)
 	if err != nil {
@@ -40,7 +41,7 @@ func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
 	return pow, nil
 }
 
-// Prepares data for the proof of work
+// prepareData prepares data for the proof of work
 func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
 	targetBits, err := strconv.Atoi(pow.cfg.ProofOfWorkConfig.TargetBits)
 	if err != nil {
@@ -62,10 +63,15 @@ func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
 		return nil, utils.CatchErr(err)
 	}
 
+	hashedTransactions, err := pow.block.HashTransactions()
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
-			pow.block.HashTransactions(),
+			hashedTransactions,
 			timestampBytes,
 			targetBitsBytes,
 			nonceBytes,
@@ -75,7 +81,7 @@ func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
 	return data, nil
 }
 
-// Runs the proof of work
+// Run runs the proof of work
 func (pow *ProofOfWork) Run() (*int, []byte, error) {
 	var hashInt big.Int
 	var hash [32]byte
@@ -103,7 +109,7 @@ func (pow *ProofOfWork) Run() (*int, []byte, error) {
 	return &nonce, hash[:], nil
 }
 
-// Validates a block's proof of work
+// Validate validates a block's proof of work
 func (pow *ProofOfWork) Validate() (*bool, error) {
 	var hashInt big.Int
 

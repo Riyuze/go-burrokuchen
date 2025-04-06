@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"encoding/gob"
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
 	"strconv"
@@ -42,4 +43,35 @@ func NewTXOutput(cfg *model.Config, value int, address string) (*TXOutput, error
 	}
 
 	return txo, nil
+}
+
+// TXOutputs represent a list of transaction outputs
+type TXOutputs struct {
+	Outputs []TXOutput
+}
+
+// Serialize serializes TXOutputs
+func (outs TXOutputs) Serialize() ([]byte, error) {
+	var buff bytes.Buffer
+
+	enc := gob.NewEncoder(&buff)
+	err := enc.Encode(outs)
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
+	return buff.Bytes(), nil
+}
+
+// DeserializeOutputs deserializes TXOutputs
+func DeserializeOutputs(data []byte) (*TXOutputs, error) {
+	var outputs TXOutputs
+
+	dec := gob.NewDecoder(bytes.NewReader(data))
+	err := dec.Decode(&outputs)
+	if err != nil {
+		return nil, utils.CatchErr(err)
+	}
+
+	return &outputs, nil
 }

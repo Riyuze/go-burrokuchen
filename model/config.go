@@ -8,8 +8,9 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	DbName       string
-	BlocksBucket string
+	DbName        string
+	BlocksBucket  string
+	UTXOSetBucket string
 }
 
 type ProofOfWorkConfig struct {

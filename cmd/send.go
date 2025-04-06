@@ -41,12 +41,26 @@ func send(cfg *model.Config) error {
 	}
 	defer blockchain.Db.Close()
 
-	transaction, err := core.NewUTXOTransaction(*blockchain, from, to, amount)
+	utxoSet := core.NewUTXOSet(cfg, blockchain)
+
+	transaction, err := core.NewUTXOTransaction(*utxoSet, from, to, amount)
 	if err != nil {
 		return utils.CatchErr(err)
 	}
 
-	err = blockchain.MineBlock([]*core.Transaction{transaction})
+	coinbaseTransaction, err := core.NewCoinbaseTX(cfg, from, "")
+	if err != nil {
+		return utils.CatchErr(err)
+	}
+
+	transactions := []*core.Transaction{coinbaseTransaction, transaction}
+
+	newBlock, err := blockchain.MineBlock(transactions)
+	if err != nil {
+		return utils.CatchErr(err)
+	}
+
+	err = utxoSet.Update(newBlock)
 	if err != nil {
 		return utils.CatchErr(err)
 	}

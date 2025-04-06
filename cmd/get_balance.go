@@ -49,6 +49,8 @@ func getBalance(cfg *model.Config) error {
 	}
 	defer blockchain.Db.Close()
 
+	UTXSOSet := core.NewUTXOSet(cfg, blockchain)
+
 	balance := 0
 
 	pubKeyHash := utils.Base58Decode([]byte(address))
@@ -58,12 +60,13 @@ func getBalance(cfg *model.Config) error {
 	}
 
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checkSumLength]
-	unspentTXOs, err := blockchain.FindUnspentTransactionOutputs(pubKeyHash)
+
+	UTXOs, err := UTXSOSet.FindUTXOByPubKeyHash(pubKeyHash)
 	if err != nil {
 		return utils.CatchErr(err)
 	}
 
-	for _, out := range unspentTXOs {
+	for _, out := range UTXOs.Outputs {
 		balance += out.Value
 	}
 

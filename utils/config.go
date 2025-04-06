@@ -8,6 +8,7 @@ import (
 func LoadConfg() *model.Config {
 	dbName := os.Getenv("DATABASE")
 	blocksBucket := os.Getenv("BLOCKS_BUCKET")
+	utxoSetBucket := os.Getenv("UTXO_SET_BUCKET")
 	targetBits := os.Getenv("TARGET_BITS")
 	subsidy := os.Getenv("SUBSIDY")
 	genesisCoinbaseData := os.Getenv("GENESIS_COINBASE_DATA")
@@ -16,8 +17,9 @@ func LoadConfg() *model.Config {
 
 	cfg := &model.Config{
 		DatabaseConfig: model.DatabaseConfig{
-			DbName:       dbName,
-			BlocksBucket: blocksBucket,
+			DbName:        dbName,
+			BlocksBucket:  blocksBucket,
+			UTXOSetBucket: utxoSetBucket,
 		}, ProofOfWorkConfig: model.ProofOfWorkConfig{
 			TargetBits: targetBits,
 		}, TransactionConfig: model.TransactionConfig{

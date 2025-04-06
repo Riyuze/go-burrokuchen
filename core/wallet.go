@@ -40,6 +40,7 @@ func NewWallet(cfg *model.Config) (*Wallet, error) {
 	return &wallet, nil
 }
 
+// newKeyPair generates and returns a private and public key pair
 func newKeyPair() (*ecdsa.PrivateKey, []byte, error) {
 	curve := elliptic.P256()
 
@@ -96,7 +97,7 @@ func (w *Wallet) GetAddress() ([]byte, error) {
 	return address, nil
 }
 
-// ValidateAddress check if address if valid
+// ValidateAddress checks if address if valid
 func ValidateAddress(cfg *model.Config, address string) (*bool, error) {
 	checkSumLength, err := strconv.Atoi(cfg.WalletConfig.CheckSumLength)
 	if err != nil {
@@ -114,6 +115,7 @@ func ValidateAddress(cfg *model.Config, address string) (*bool, error) {
 	return &result, nil
 }
 
+// GobEncode encodes the public key using the streams of gobs
 func (w *Wallet) GobEncode() ([]byte, error) {
 	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
@@ -148,6 +150,7 @@ func (w *Wallet) GobEncode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// GobDecode decodes the public key using the streams of gobs
 func (w *Wallet) GobDecode(data []byte) error {
 	buffer := bytes.NewBuffer(data)
 	decoder := gob.NewDecoder(buffer)

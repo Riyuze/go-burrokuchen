@@ -2,13 +2,13 @@ package core
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
 	"time"
 )
 
+// Block represents a block in the blockchain
 type Block struct {
 	Timestamp     int64
 	Transactions  []*Transaction
@@ -17,7 +17,7 @@ type Block struct {
 	Nonce         int
 }
 
-// Generates and returns a new block
+// NewBlock generates and returns a new block
 func NewBlock(cfg *model.Config, transactions []*Transaction, prevBlockHash []byte) (*Block, error) {
 	block := &Block{
 		Timestamp:     time.Now().Unix(),
@@ -43,7 +43,7 @@ func NewBlock(cfg *model.Config, transactions []*Transaction, prevBlockHash []by
 	return block, nil
 }
 
-// Generates and returns a genesis block
+// NewGenesisBlock generates and returns a genesis block
 func NewGenesisBlock(cfg *model.Config, coinbase *Transaction) (*Block, error) {
 	transactions := []*Transaction{coinbase}
 
@@ -67,20 +67,24 @@ func (b *Block) SerializeBlock() ([]byte, error) {
 	return result.Bytes(), nil
 }
 
-// Returns a hash of the transactions in the block
-func (b *Block) HashTransactions() []byte {
-	var txHashes [][]byte
-	var txHash [32]byte
+// HashTransactions returns a hash of the transactions in the block
+func (b *Block) HashTransactions() ([]byte, error) {
+	var transactions [][]byte
 
 	for _, tx := range b.Transactions {
-		txHashes = append(txHashes, tx.ID)
+		serializedTransaction, err := tx.Serialize()
+		if err != nil {
+			return nil, utils.CatchErr(err)
+		}
+		transactions = append(transactions, serializedTransaction)
 	}
-	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
 
-	return txHash[:]
+	mTree := NewMerkleTree(transactions)
+
+	return mTree.RootNode.Data, nil
 }
 
-// Deserializes a block
+// DeserializeBlock deserializes a block
 func DeserializeBlock(d []byte) (*Block, error) {
 	var block Block
 

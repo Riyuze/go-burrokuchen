@@ -27,6 +27,10 @@ This is a very simple implementation of a blokchain in the go programming langua
 		- [Life Cycle of a Transaction](#life-cycle-of-a-transaction)
 		- [Elliptic Curve Cryptography](#elliptic-curve-cryptography)
 		- [Base58](#base58)
+	- [Chapter 6: Transactions II](#chapter-6-transactions-ii)
+		- [Reward](#reward)
+		- [UTXO Set](#utxo-set)
+		- [Merkle Tree](#merkle-tree)
 
 ---
 
@@ -242,5 +246,37 @@ Version  	Public key hash                           										Checksum
 ```
 
 Since hashing functions are **one way** (they cannot be reversed), it’s not possible to extract the public key from the hash. But we can check if a public key was used to get the hash by running it through the same hash functions and comparing the hashes.
+
+---
+
+## Chapter 6: [Transactions II](https://jeiwan.net/posts/building-blockchain-in-go-part-6/)
+
+### Reward
+
+The reward is just a **coinbase transaction**. When a mining node starts mining a new block, it takes transactions from the queue and prepends a coinbase transaction to them. The coinbase transaction’s only output contains miner’s **public key hash**.
+
+### UTXO Set
+
+Right now, when finding unspent outputs, our program will **iterate over each block** in the blockchain and checks every transaction in it. As of September 18, 2017, there are `485,860 blocks` in Bitcoin and the whole database takes `140+ Gb` of disk space. This means that one has to run a full node to validate transactions. Moreover, validating transactions would require iterating over many blocks.
+
+The solution to the problem is to have an **index that stores only unspent outputs**, and this is what the **UTXO set** does. This is a **cache** that is built from all blockchain transactions (by iterating over blocks, yes, but this is done only once), and is later used to calculate balance and validate new transactions. The UTXO set is about `2.7 Gb` as of September 2017.
+
+### Merkle Tree
+
+As it was said above, the full Bitcoin database (i.e., blockchain) takes more than `140 Gb` of disk space. Because of the decentralized nature of Bitcoin, every node in the network must be independent and self-sufficient, where **every node must store a full copy of the blockchain**. With many people starting using Bitcoin, this rule becomes more difficult to follow, it’s not likely that everyone will run a full node. Also, since nodes are full-fledged participants of the network, they have responsibilities, they must **verify transactions and blocks**. Also, there’s certain internet traffic required to interact with other nodes and download new blocks.
+
+In the original [Bitcoin paper](https://bitcoin.org/bitcoin.pdf) published by _Satoshi Nakamoto_, there was a solution for this problem: **Simplified Payment Verification (SPV)**. SPV is a light Bitcoin node that doesn’t download the whole blockchain and **doesn’t verify blocks and transactions**. Instead, it finds transactions in blocks (to verify payments) and is linked to a full node to retrieve just necessary data. This mechanism allows having **multiple light wallet nodes** with running just **one full node**.
+
+For SPV to be possible, there should be a way to check if a block contains certain transaction without downloading the whole block. And this is where **Merkle tree** comes into play.
+
+Merkle trees are used by Bitcoin to obtain transactions hash, which is then saved in block headers and is considered by the proof-of-work system. Until now, we just concatenated hashes of each transaction in a block and applied SHA-256 to them. This is also a good way of getting a unique representation of block transactions, but it doesn’t have benefits of Merkle trees.
+
+![Merkle Tree](image/merkle_tree.png)
+
+A Merkle tree is built for each block, and it starts with leaves (the bottom of the tree), where a **leaf is a transaction hash** (Bitcoin uses double SHA256 hashing). The number of leaves **must be even**, but not every block contains an even number of transactions. In case there is an odd number of transactions, the **last transaction is duplicated** (in the Merkle tree, not in the block!).
+
+Moving from the bottom up, **leaves are grouped in pairs**, their **hashes are concatenated**, and a new hash is obtained from the concatenated hashes. The new hashes form new tree nodes. This process is repeated until there’s just **one node**, which is called the **root of the tree**. The root hash is then used as the **unique representation of the transactions**, is **saved in block headers**, and is **used in the proof-of-work system**.
+
+The benefit of Merkle trees is that a node can **verify membership of certain transaction without downloading the whole block**. Just a transaction hash, a Merkle tree root hash, and a Merkle path are required for this.
 
 ---
