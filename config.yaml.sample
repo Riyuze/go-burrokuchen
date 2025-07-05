@@ -1,0 +1,16 @@
+database:
+  name: blockchain.db # Name of the database file
+  blocks_bucket: blocks # Name of the bucket (collection) used for storing the blockchain's data
+  utxo_set_bucket: utxo_set # Name of the bucket (collection) used for storing the utxo set's data
+proof_of_work:
+  target_bits: 16 # Hash value target for mining a block (target = 256 - TARGET_BITS)
+transaction:
+  subsidy: 10 # Reward given to the miner
+  genesis_coinbase_data: This was made by Kevin Tandavo as a means to learn about the blockchain. # Data for the genesis block
+wallet:
+  file: wallet.dat # Name of the wallet file
+  check_sum_length: 4 # Length of the check sum for addresses
+server:
+  central_node: localhost:3000 # Address of the central node
+  protocol: tcp # Protocol of the network
+  node_version: 1 # Version of the Node

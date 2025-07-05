@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
-	"strconv"
 )
 
 // TXOutput represents a transaction output
@@ -17,10 +16,7 @@ type TXOutput struct {
 
 // Lock signs the output
 func (out *TXOutput) Lock(address []byte) error {
-	checkSumLength, err := strconv.Atoi(out.cfg.WalletConfig.CheckSumLength)
-	if err != nil {
-		return utils.CatchErr(err)
-	}
+	checkSumLength := out.cfg.WalletConfig.CheckSumLength
 
 	pubKeyHash := utils.Base58Decode(address)
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checkSumLength]

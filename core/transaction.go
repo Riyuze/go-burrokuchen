@@ -12,7 +12,6 @@ import (
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
 	"math/big"
-	"strconv"
 )
 
 // Transaction represents a transaction
@@ -54,15 +53,10 @@ func (tx *Transaction) Hash() ([]byte, error) {
 
 // NewCoinbaseTX generates and returns a new coinbase transaction
 func NewCoinbaseTX(cfg *model.Config, to string, data string) (*Transaction, error) {
-	subsidyStr := cfg.TransactionConfig.Subsidy
+	subsidy := cfg.TransactionConfig.Subsidy
 
 	if data == "" {
 		data = fmt.Sprintf("Reward sent to: %s", to)
-	}
-
-	subsidy, err := strconv.Atoi(subsidyStr)
-	if err != nil {
-		return nil, utils.CatchErr(err)
 	}
 
 	txIn := TXInput{

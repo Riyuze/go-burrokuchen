@@ -5,6 +5,7 @@ type Config struct {
 	ProofOfWorkConfig ProofOfWorkConfig
 	TransactionConfig TransactionConfig
 	WalletConfig      WalletConfig
+	ServerConfig      ServerConfig
 }
 
 type DatabaseConfig struct {
@@ -14,15 +15,22 @@ type DatabaseConfig struct {
 }
 
 type ProofOfWorkConfig struct {
-	TargetBits string
+	TargetBits int
 }
 
 type TransactionConfig struct {
-	Subsidy             string
+	Subsidy             int
 	GenesisCoinbaseData string
 }
 
 type WalletConfig struct {
 	WalletFile     string
-	CheckSumLength string
+	CheckSumLength int
+}
+
+type ServerConfig struct {
+	CentralNodeAddress string
+	Protocol           string
+	NodeVersion        int
+	CommandLength      int
 }

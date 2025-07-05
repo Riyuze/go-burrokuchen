@@ -5,7 +5,6 @@ import (
 	"go-burrokuchen/core"
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -54,10 +53,7 @@ func getBalance(cfg *model.Config) error {
 	balance := 0
 
 	pubKeyHash := utils.Base58Decode([]byte(address))
-	checkSumLength, err := strconv.Atoi(cfg.WalletConfig.CheckSumLength)
-	if err != nil {
-		return utils.CatchErr(err)
-	}
+	checkSumLength := cfg.WalletConfig.CheckSumLength
 
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checkSumLength]
 

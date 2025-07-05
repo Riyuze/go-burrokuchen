@@ -8,7 +8,6 @@ import (
 	"go-burrokuchen/utils"
 	"math"
 	"math/big"
-	"strconv"
 )
 
 var (
@@ -24,10 +23,7 @@ type ProofOfWork struct {
 
 // NewProofOfWork generates and returns a proof of work
 func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
-	targetBits, err := strconv.Atoi(cfg.ProofOfWorkConfig.TargetBits)
-	if err != nil {
-		return nil, utils.CatchErr(err)
-	}
+	targetBits := cfg.ProofOfWorkConfig.TargetBits
 
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
@@ -43,10 +39,7 @@ func NewProofOfWork(cfg *model.Config, b *Block) (*ProofOfWork, error) {
 
 // prepareData prepares data for the proof of work
 func (pow *ProofOfWork) prepareData(nonce int) ([]byte, error) {
-	targetBits, err := strconv.Atoi(pow.cfg.ProofOfWorkConfig.TargetBits)
-	if err != nil {
-		return nil, utils.CatchErr(err)
-	}
+	targetBits := pow.cfg.ProofOfWorkConfig.TargetBits
 
 	timestampBytes, err := utils.IntToHex(pow.block.Timestamp)
 	if err != nil {

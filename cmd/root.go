@@ -21,7 +21,10 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() error {
-	config := utils.LoadConfg()
+	config, err := utils.LoadConfg()
+	if err != nil {
+		return utils.CatchErr(err)
+	}
 
 	rootCmd.AddCommand(
 		NewCreateBlockchainCmd(config),
@@ -30,7 +33,7 @@ func Execute() error {
 		NewCreateWalletCmd(config),
 	)
 
-	err := rootCmd.Execute()
+	err = rootCmd.Execute()
 	if err != nil {
 		return utils.CatchErr(err)
 	}

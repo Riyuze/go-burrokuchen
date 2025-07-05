@@ -11,7 +11,6 @@ import (
 	"go-burrokuchen/model"
 	"go-burrokuchen/utils"
 	"math/big"
-	"strconv"
 
 	"golang.org/x/crypto/ripemd160"
 )
@@ -85,10 +84,8 @@ func (w *Wallet) GetAddress() ([]byte, error) {
 
 	versionPayload := append([]byte{version}, pubKeyHash...)
 
-	checkSumLength, err := strconv.Atoi(w.cfg.WalletConfig.CheckSumLength)
-	if err != nil {
-		return nil, utils.CatchErr(err)
-	}
+	checkSumLength := w.cfg.WalletConfig.CheckSumLength
+
 	checkSum := checkSum(versionPayload, checkSumLength)
 
 	fullPayload := append(versionPayload, checkSum...)
@@ -99,10 +96,7 @@ func (w *Wallet) GetAddress() ([]byte, error) {
 
 // ValidateAddress checks if address if valid
 func ValidateAddress(cfg *model.Config, address string) (*bool, error) {
-	checkSumLength, err := strconv.Atoi(cfg.WalletConfig.CheckSumLength)
-	if err != nil {
-		return nil, utils.CatchErr(err)
-	}
+	checkSumLength := cfg.WalletConfig.CheckSumLength
 
 	pubKeyHash := utils.Base58Decode([]byte(address))
 	actualChecksum := pubKeyHash[len(pubKeyHash)-checkSumLength:]
